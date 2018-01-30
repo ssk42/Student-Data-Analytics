@@ -34,6 +34,7 @@ userNLI={}
 emailCheck={}
 completeCount=0
 loggedInCount=0
+completedUser=""
 
 #test
 #test2
@@ -52,15 +53,15 @@ for sheet in wbStates:
         n=0
         wbStates.sheetnames[n]
         #print(wbStates.active)
-        wbStates.active=sheet
+        #wbStates.active=sheet
         loggedInCount=0
         completeCount=0
-        for rowNum in range(1,427):
-            allUser= sheet['E'+str(rowNum)].value
-            allEmails= sheet['D'+str(rowNum)].value
+        for rowNum in range(1,427):           
             allFirstNames= sheet['A'+str(rowNum)].value
             allLastNames= sheet['B'+str(rowNum)].value
-            allAgencies= sheet.title
+            allAgencies= sheet['C'+str(rowNum)].value
+            allEmails= sheet['D'+str(rowNum)].value
+            allUser= sheet['E'+str(rowNum)].value           
             #Sets up the searchable categories
             student.setdefault(allUser,{"First Name": allFirstNames,"Last Name": allLastNames,"Agency": allAgencies, "User": allUser, "Email": allEmails, "¿Ha accedido al curso?": '',"¿Completó el curso?":''})
             yesOrNo= sheet.cell(row=rowNum, column=7)
@@ -147,11 +148,15 @@ def agencyCompletionResults(agencyName):
         #print(agencyName)
         for k,v in student.items():
                 for k1,v1 in v.items():
-##                        print(v1)
-                        if v1==agencyName and k1=="Agency":
-                                print(k)
-                               
-                                #continue
+                        if v1=="Completó":
+                                completedUser=k
+                                if agencyName in student[k]['Agency']:
+                                        print(k)
+                                elif k is None:
+                                        print("a")
+                        elif v1 is None :
+                                continue
+                                        #print(k1)                              
         
 def agencyLoginResults(agencyName):
         print(a)
