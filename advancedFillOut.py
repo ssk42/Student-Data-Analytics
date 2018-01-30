@@ -143,12 +143,14 @@ def agencyCompletionResults(agencyName):
         ##DESC: 
         ##TODO: Completion,
         ##TODO:login, eval filters
-        print(agencyName)
+        #print(agencyName)
+        print(wbStates.sheetnames)
         for k,v in student.items():
                 for k1,v1 in v.items():
 ##                        print(v1)
-                        if v1==agencyName:
-                                print(v1)
+                        if v1==agencyName and k1=="Agency":
+                                print(k)
+                               
                                 #continue
         
 def agencyLoginResults(agencyName):
