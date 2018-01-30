@@ -143,9 +143,13 @@ def agencyCompletionResults(agencyName):
         ##DESC: 
         ##TODO: Completion,
         ##TODO:login, eval filters
-        print("Got here")
-##        if agencyName in list(student.:
-##                        print(k)
+        print(agencyName)
+        for k,v in student.items():
+                for k1,v1 in v.items():
+##                        print(v1)
+                        if v1==agencyName:
+                                print(v1)
+                                #continue
         
 def agencyLoginResults(agencyName):
         print(a)
