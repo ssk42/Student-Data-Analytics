@@ -52,6 +52,7 @@ for sheet in wbStates:
         n=0
         wbStates.sheetnames[n]
         #print(wbStates.active)
+        wbStates.active=sheet
         loggedInCount=0
         completeCount=0
         for rowNum in range(1,427):
@@ -144,7 +145,6 @@ def agencyCompletionResults(agencyName):
         ##TODO: Completion,
         ##TODO:login, eval filters
         #print(agencyName)
-        print(wbStates.sheetnames)
         for k,v in student.items():
                 for k1,v1 in v.items():
 ##                        print(v1)
