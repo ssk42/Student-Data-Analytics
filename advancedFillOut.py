@@ -86,27 +86,6 @@ for sheet in wbStates:
                 sheet.cell(row=rowNum, column=8).value= 'No ha iniciado sesión'
                 student[allUser].update({"¿Completó el curso?":'No ha iniciado sesión'})
 
-##         IGNORE THIS CODE. WIP THAT IS LOW PRIORITY SILLINESS
-##                
-##        print(str(sheet.max_row)+sheet.title)
-##        sheet['G'+str(sheet.max_row)].value= loggedInCount
-##        loggedInPercent= (loggedInCount/427)*100
-##        #sheet[''+sheet.max_row].value=str(loggedInPercent) + "% have logged into the course"
-##        #print(str(loggedInPercent) +"% have logged into the course")
-##        print(loggedInCount)
-##        sheet['H'+str(sheet.max_row)].value= completeCount
-##        completePercent= (completeCount/427)*100
-        #sheet['H429'].value= str(completePercent) +"% have completed the course"
-##        print(str(completePercent)+"% have completed the course")
-##        sheets= wbStates.sheetnames
-##        for s in sheets:
-##                if s!=sheet.title:
-##                        sheet_name= wbStates.get_sheet_by_name(s)
-##                        wbStates.remove_sheet(sheet_name)
-##        wbStates.save(sheet.title+'.xlsx')
-##        n=n+1
-##        wbStates= openpyxl.load_workbook('test4.xlsx')
-
 #Searches for 
 def saveUserSearch(saveName, dictTerm, dictTerm2):
         print("Would you like to save this list?")
@@ -122,7 +101,7 @@ def saveUserSearch(saveName, dictTerm, dictTerm2):
                                 ws['B'+str(row)].value= list(student[dictTerm2].values())[row2]
         wbNew.save(str(saveName)+'.xlsx')
         print("Saving file "+str(saveName)+'.xlsx')
-        end()
+        #end()
 
  #Searches for unsent evaluations               
 def saveUnsentEvals(saveName, dictTerm):
@@ -155,32 +134,109 @@ def agencyCompletionResults(agencyName):
         ##           Apply to agencyLoginResults and agencyEvalResults
         ##TODO:login, eval filters
         #print(agencyName)
-        firstName=""
-        lastName=""
+        firstName="f"
+        lastName="a"
         wbNew= Workbook()
         ws= wbNew.active
         numRow=1
-        #try:
-        for k,v in student.items():
-                for k1,v1 in v.items():
-                        if v1=="Completó":
-                                completedUser=k
-                                if agencyName in student[k]['Agency']:
-                                        firstName=student[k]['First Name']
-                                        lastName=student[k]['Last Name']
-                                        email=student[k]['Email']
-                                        studentInfo=firstName+" "+lastName+" "+completedUser
-                                        print(firstName+" "+lastName+" "+completedUser)
-                                        ws['A'+str(numRow)].value= firstName
-                                        ws['B'+str(numRow)].value= lastName
-                                        ws['C'+str(numRow)].value= email
-                                        ws['D'+str(numRow)].value= agencyName
-                                        numRow=numRow+1
-        wbNew.save(agencyName+' Completes.xlsx')
-        print("Saved "+agencyName+' Completes.xlsx')
-        end()
-        #except:
-                #exc_type, exc_value, exc_traceback = sys.exc_info()
+        if agencyName=="All":
+                try:
+                        for sheet in wbStates:
+                                agencyName=sheet.title
+                                if agencyName=="Querétaro":
+                                        print('q')
+                                        for k,v in student.items():
+                                                for k1,v1 in v.items():
+                                                        if v1=="Completó" and k1=="¿Completó el curso?":
+                                                                completedUser=k
+                                                                if agencyName or 'Jalpan' in student[k]['Agency']:
+                                                                        if student[k]['First Name'] != None:
+                                                                                firstName=student[k]['First Name']
+                                                                        if student[k]['Last Name'] != None:
+                                                                                lastName=student[k]['Last Name']
+                                                                        email=student[k]['Email']
+                                                                        studentInfo=firstName+" "+lastName+" "+completedUser
+                                                                        print(firstName+" "+lastName+" "+completedUser)
+                                                                        ws['A'+str(numRow)].value= firstName
+                                                                        ws['B'+str(numRow)].value= lastName
+                                                                        ws['C'+str(numRow)].value= email
+                                                                        ws['D'+str(numRow)].value= student[k]['Agency']
+                                                                        numRow=numRow+1
+                                        print(numRow)   
+                                elif agencyName=="Ciudad de Mexico":
+                                        print('c')
+                                        for k,v in student.items():
+                                                for k1,v1 in v.items():
+                                                        if v1=="Completó":
+                                                                completedUser=k
+                                                                if agencyName or 'Federal' or 'Ciudad de México' in student[k]['Agency']:
+                                                                        if student[k]['First Name'] != None:
+                                                                                firstName=student[k]['First Name']
+                                                                        if student[k]['Last Name'] != None:
+                                                                                lastName=student[k]['Last Name']
+                                                                        email=student[k]['Email']
+                                                                        studentInfo=firstName+" "+lastName+" "+completedUser
+                                                                        print(firstName+" "+lastName+" "+completedUser)
+                                                                        ws['A'+str(numRow)].value= firstName
+                                                                        ws['B'+str(numRow)].value= lastName
+                                                                        ws['C'+str(numRow)].value= email
+                                                                        ws['D'+str(numRow)].value= student[k]['Agency']
+                                                                        numRow=numRow+1
+                                        print(numRow)
+                                else:
+                                        print(agencyName)
+                                        for k,v in student.items():
+                                                for k1,v1 in v.items():
+                                                        if v1=="Completó":
+                                                                completedUser=k
+                                                                if agencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] != None:
+                                                                                firstName=student[k]['First Name']
+                                                                        if student[k]['Last Name'] != None:
+                                                                                lastName=student[k]['Last Name']
+                                                                        email=student[k]['Email']
+                                                                        studentInfo=firstName+" "+lastName+" "+completedUser
+                                                                        print(firstName+" "+lastName+" "+completedUser)
+                                                                        ws['A'+str(numRow)].value= firstName
+                                                                        ws['B'+str(numRow)].value= lastName
+                                                                        ws['C'+str(numRow)].value= email
+                                                                        ws['D'+str(numRow)].value= student[k]['Agency']
+                                                                        numRow=numRow+1
+                                        print(numRow)
+                except:
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                wbNew.save('Completes sorted by Agency.xlsx')
+                print('Completes sorted by Agency.xlsx')
+        else:
+                for k,v in student.items():
+                        for k1,v1 in v.items():
+                                if v1=="Completó":
+                                        completedUser=k
+                                        actualAgencyName=""
+                                        if agencyName=="Querétaro" or "Queretaro":
+                                                actualAgencyName= "Querétaro" or "Jalpan"
+                                                print(actualAgencyName)
+                                        elif agencyName=="Ciudad de Mexico" or "CDMX":
+                                                actualAgencyName= "Ciudad de México" or "Feder"
+                                                print(actualAgencyName)
+                                        else:
+                                                actualAgencyName=agencyName
+                                                print(actualAgencyName)
+                                        if actualAgencyName in student[k]['Agency']:
+                                                firstName=student[k]['First Name']
+                                                lastName=student[k]['Last Name']
+                                                email=student[k]['Email']
+                                                studentInfo=firstName+" "+lastName+" "+completedUser
+                                                print(firstName+" "+lastName+" "+completedUser)
+                                                ws['A'+str(numRow)].value= firstName
+                                                print(firstName+" entered")
+                                                ws['B'+str(numRow)].value= lastName
+                                                ws['C'+str(numRow)].value= email
+                                                ws['D'+str(numRow)].value= student[k]['Agency']
+                                                numRow=numRow+1
+                wbNew.save(agencyName+' Completes.xlsx')
+                print("Saved "+agencyName+' Completes.xlsx')
+        
 def agencyLoginResults(agencyName):
         print(a)
 def agencyEvalResults(agencyName):
@@ -243,7 +299,7 @@ def generalSearch():
                 filterSearch=input()
                 if(filterSearch=="Completion"):
                         agencyCompletionResults(agencySearch)
-        end()
+        #end()
 def end():
         print('Updated all known student info data as updated.xlsx')
         wbStates.save('updated.xlsx')
@@ -257,11 +313,11 @@ def end():
 
 generalSearch()
 ##Saves it as a Excel sheet
-print('Saved updated.xlsx')
-wbStates.save('updated.xlsx')
-print('Would you like to make another search?')
-repeatAnswer=input()
-if repeatAnswer=='Yes':
-        generalSearch()
-if repeatAnswer=='No':
-        quit
+##print('Saved updated.xlsx')
+##wbStates.save('updated.xlsx')
+##print('Would you like to make another search?')
+##repeatAnswer=input()
+##if repeatAnswer=='Yes':
+##        generalSearch()
+##if repeatAnswer=='No':
+##        quit
