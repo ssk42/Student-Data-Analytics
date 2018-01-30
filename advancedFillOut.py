@@ -144,6 +144,11 @@ def saveUnsentEvals(saveName, dictTerm):
 def agencyCompletionResults(agencyName):
         ##DESC: 
         ##TODO: Completion,
+        ##           Add in emails
+        ##           Save it in an excel sheet
+        ##           Remove Nonetype error?
+        ##           Add in different completion levels?
+        ##           Apply to agencyLoginResults and agencyEvalResults
         ##TODO:login, eval filters
         #print(agencyName)
         for k,v in student.items():
@@ -155,8 +160,7 @@ def agencyCompletionResults(agencyName):
                                 elif k is None:
                                         print("a")
                         elif v1 is None :
-                                continue
-                                        #print(k1)                              
+                                continue                            
         
 def agencyLoginResults(agencyName):
         print(a)
