@@ -13,8 +13,9 @@
 # 3.. Gradebook functionality
 # 7. CSV reading functionality
 
-import os, openpyxl, pprint
+import os, openpyxl, pprint, logging, ftplib, sys, traceback
 from openpyxl import Workbook
+logger=logging.getLogger('ftpuploader')
 ##Master sheet
 #wbTest= openpyxl.load_workbook('test.xlsx')
 #sheet= wbTest.get_sheet_by_name('Complete')
@@ -59,7 +60,8 @@ for sheet in wbStates:
         for rowNum in range(1,427):           
             allFirstNames= sheet['A'+str(rowNum)].value
             allLastNames= sheet['B'+str(rowNum)].value
-            allAgencies= sheet['C'+str(rowNum)].value
+            if(sheet['C'+str(rowNum)].value!=None):
+                    allAgencies= sheet['C'+str(rowNum)].value
             allEmails= sheet['D'+str(rowNum)].value
             allUser= sheet['E'+str(rowNum)].value           
             #Sets up the searchable categories
@@ -120,6 +122,7 @@ def saveUserSearch(saveName, dictTerm, dictTerm2):
                                 ws['B'+str(row)].value= list(student[dictTerm2].values())[row2]
         wbNew.save(str(saveName)+'.xlsx')
         print("Saving file "+str(saveName)+'.xlsx')
+        end()
 
  #Searches for unsent evaluations               
 def saveUnsentEvals(saveName, dictTerm):
@@ -139,6 +142,7 @@ def saveUnsentEvals(saveName, dictTerm):
                 print("Saving file "+str(saveName)+'.xlsx')
         else:
                 print("")
+        end()
                 
 ##These next three func
 def agencyCompletionResults(agencyName):
@@ -151,17 +155,32 @@ def agencyCompletionResults(agencyName):
         ##           Apply to agencyLoginResults and agencyEvalResults
         ##TODO:login, eval filters
         #print(agencyName)
+        firstName=""
+        lastName=""
+        wbNew= Workbook()
+        ws= wbNew.active
+        numRow=1
+        #try:
         for k,v in student.items():
                 for k1,v1 in v.items():
                         if v1=="Completó":
                                 completedUser=k
                                 if agencyName in student[k]['Agency']:
-                                        print(k)
-                                elif k is None:
-                                        print("a")
-                        elif v1 is None :
-                                continue                            
-        
+                                        firstName=student[k]['First Name']
+                                        lastName=student[k]['Last Name']
+                                        email=student[k]['Email']
+                                        studentInfo=firstName+" "+lastName+" "+completedUser
+                                        print(firstName+" "+lastName+" "+completedUser)
+                                        ws['A'+str(numRow)].value= firstName
+                                        ws['B'+str(numRow)].value= lastName
+                                        ws['C'+str(numRow)].value= email
+                                        ws['D'+str(numRow)].value= agencyName
+                                        numRow=numRow+1
+        wbNew.save(agencyName+' Completes.xlsx')
+        print("Saved "+agencyName+' Completes.xlsx')
+        end()
+        #except:
+                #exc_type, exc_value, exc_traceback = sys.exc_info()
 def agencyLoginResults(agencyName):
         print(a)
 def agencyEvalResults(agencyName):
@@ -224,8 +243,25 @@ def generalSearch():
                 filterSearch=input()
                 if(filterSearch=="Completion"):
                         agencyCompletionResults(agencySearch)
+        end()
+def end():
+        print('Updated all known student info data as updated.xlsx')
+        wbStates.save('updated.xlsx')
+        print('Would you like to make another search?')
+        repeatAnswer=input()
+        if repeatAnswer=='Yes':
+                generalSearch()
+        if repeatAnswer=='No':
+                quit
+
 
 generalSearch()
 ##Saves it as a Excel sheet
 print('Saved updated.xlsx')
 wbStates.save('updated.xlsx')
+print('Would you like to make another search?')
+repeatAnswer=input()
+if repeatAnswer=='Yes':
+        generalSearch()
+if repeatAnswer=='No':
+        quit
