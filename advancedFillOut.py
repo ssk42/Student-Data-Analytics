@@ -27,7 +27,7 @@ sheet2= wbCompletion.get_sheet_by_name('Complete')
 wbNLI=openpyxl.load_workbook('test3.xlsx')
 sheet3= wbNLI.get_sheet_by_name('Students-Never-Logged-into-Blue')
 ##Master Sheet with all of the states
-wbStates=openpyxl.load_workbook('test4.xlsx')
+wbStates=openpyxl.load_workbook('test5.xlsx')
 sheet= wbStates.get_sheet_by_name('Master')
 ##Dictionaries that store everything
 student={}
@@ -51,10 +51,6 @@ for row in range(1, 427):
 ##This next loop fills out the sheet ala Google sheets but without any weird sorting, b/c yay Python
 sheet=0
 for sheet in wbStates:
-        n=0
-        wbStates.sheetnames[n]
-        #print(wbStates.active)
-        #wbStates.active=sheet
         loggedInCount=0
         completeCount=0
         for rowNum in range(1,427):           
@@ -75,15 +71,15 @@ for sheet in wbStates:
                 student[allUser].update({"¿Ha accedido al curso?":'Sí'})
                 loggedInCount=loggedInCount+1
             if allEmails in emailCheck:
-                sheet.cell(row=rowNum, column=8).value= 'Completó'
+                sheet.cell(row=rowNum, column=7).value= 'Completó'
                 student[allUser].update({"¿Completó el curso?":'Completó'})
                 completeCount=completeCount+1
                 #print(completeCount)
             elif( yesOrNo.value == 'Sí'):
-                sheet.cell(row=rowNum, column=8).value= 'En progreso'
+                sheet.cell(row=rowNum, column=7).value= 'En progreso'
                 student[allUser].update({"¿Completó el curso?":'En progreso'})                      
             else:
-                sheet.cell(row=rowNum, column=8).value= 'No ha iniciado sesión'
+                sheet.cell(row=rowNum, column=7).value= 'No ha iniciado sesión'
                 student[allUser].update({"¿Completó el curso?":'No ha iniciado sesión'})
 
 #Searches for 
@@ -122,9 +118,24 @@ def saveUnsentEvals(saveName, dictTerm):
         else:
                 print("")
         end()
-                
+
+def agencyWrite(actualAgencyName):
+ if actualAgencyName in student[k]['Agency']:
+        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:
+                firstName=student[k]['First Name']
+                lastName=student[k]['Last Name']
+                email=student[k]['Email']
+                ws['A'+str(numRow)].value= firstName
+                ws['B'+str(numRow)].value= lastName
+                ws['C'+str(numRow)].value= email
+                ws['D'+str(numRow)].value= student[k]['Agency']
+                ws['E'+str(numRow)].value= numRow
+                numRow=numRow+1                                                                                
+        else:
+                continue
+       
 ##These next three func
-def agencyCompletionResults(agencyName):
+def agencyCompletionResults(initialAgencyName):
         ##DESC: 
         ##TODO: Completion,
         ##           Add in emails
@@ -134,80 +145,114 @@ def agencyCompletionResults(agencyName):
         ##           Apply to agencyLoginResults and agencyEvalResults
         ##TODO:login, eval filters
         #print(agencyName)
-        firstName="f"
-        lastName="a"
+        firstName=""
+        lastName=""
         wbNew= Workbook()
         ws= wbNew.active
-        numRow=1
-        if agencyName=="All":
-                try:
-                        for sheet in wbStates:
-                                agencyName=sheet.title
-                                if agencyName=="Querétaro":
-                                        print('q')
-                                        for k,v in student.items():
-                                                for k1,v1 in v.items():
-                                                        if v1=="Completó" and k1=="¿Completó el curso?":
+        numRow=1    
+        if initialAgencyName=="All":
+                agencyName=""
+                initialAgencyName=agencyName
+                for sheet in wbStates:
+                        keyCounter=0
+                        agencyName=sheet.title                        
+                        for k,v in student.items():
+                                if keyCounter<463:
+                                        for k1,v1 in v.items():
+                                                if v1=="Completó":
+                                                        if k != None:
                                                                 completedUser=k
-                                                                if agencyName or 'Jalpan' in student[k]['Agency']:
-                                                                        if student[k]['First Name'] != None:
+                                                                print(k)
+                                                        actualAgencyName=""
+                                                        if agencyName=="Querétaro":
+                                                                actualAgencyName=  'Jalpan'
+                                                                print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:
                                                                                 firstName=student[k]['First Name']
-                                                                        if student[k]['Last Name'] != None:
                                                                                 lastName=student[k]['Last Name']
-                                                                        email=student[k]['Email']
-                                                                        studentInfo=firstName+" "+lastName+" "+completedUser
-                                                                        print(firstName+" "+lastName+" "+completedUser)
-                                                                        ws['A'+str(numRow)].value= firstName
-                                                                        ws['B'+str(numRow)].value= lastName
-                                                                        ws['C'+str(numRow)].value= email
-                                                                        ws['D'+str(numRow)].value= student[k]['Agency']
-                                                                        numRow=numRow+1
-                                        print(numRow)   
-                                elif agencyName=="Ciudad de Mexico":
-                                        print('c')
-                                        for k,v in student.items():
-                                                for k1,v1 in v.items():
-                                                        if v1=="Completó":
-                                                                completedUser=k
-                                                                if agencyName or 'Federal' or 'Ciudad de México' in student[k]['Agency']:
-                                                                        if student[k]['First Name'] != None:
+                                                                                email=student[k]['Email']
+                                                                                ws['A'+str(numRow)].value= firstName
+                                                                                ws['B'+str(numRow)].value= lastName
+                                                                                ws['C'+str(numRow)].value= email
+                                                                                ws['D'+str(numRow)].value= student[k]['Agency']
+                                                                                ws['E'+str(numRow)].value= numRow
+                                                                                numRow=numRow+1                                                                                
+                                                                        else:
+                                                                                continue
+
+                                                                actualAgencyName= agencyName
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:
                                                                                 firstName=student[k]['First Name']
-                                                                        if student[k]['Last Name'] != None:
                                                                                 lastName=student[k]['Last Name']
-                                                                        email=student[k]['Email']
-                                                                        studentInfo=firstName+" "+lastName+" "+completedUser
-                                                                        print(firstName+" "+lastName+" "+completedUser)
-                                                                        ws['A'+str(numRow)].value= firstName
-                                                                        ws['B'+str(numRow)].value= lastName
-                                                                        ws['C'+str(numRow)].value= email
-                                                                        ws['D'+str(numRow)].value= student[k]['Agency']
-                                                                        numRow=numRow+1
-                                        print(numRow)
-                                else:
-                                        print(agencyName)
-                                        for k,v in student.items():
-                                                for k1,v1 in v.items():
-                                                        if v1=="Completó":
-                                                                completedUser=k
-                                                                if agencyName in student[k]['Agency']:
-                                                                        if student[k]['First Name'] != None:
+                                                                                email=student[k]['Email']
+                                                                                ws['A'+str(numRow)].value= firstName
+                                                                                ws['B'+str(numRow)].value= lastName
+                                                                                ws['C'+str(numRow)].value= email
+                                                                                ws['D'+str(numRow)].value= student[k]['Agency']
+                                                                                ws['E'+str(numRow)].value= numRow
+                                                                                numRow=numRow+1                                                                                
+                                                                        else:
+                                                                                continue
+                                                      
+                                                        elif agencyName=="Ciudad de Mexico":
+                                                                actualAgencyName= 'Distrito'
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:
                                                                                 firstName=student[k]['First Name']
-                                                                        if student[k]['Last Name'] != None:
                                                                                 lastName=student[k]['Last Name']
-                                                                        email=student[k]['Email']
-                                                                        studentInfo=firstName+" "+lastName+" "+completedUser
-                                                                        print(firstName+" "+lastName+" "+completedUser)
-                                                                        ws['A'+str(numRow)].value= firstName
-                                                                        ws['B'+str(numRow)].value= lastName
-                                                                        ws['C'+str(numRow)].value= email
-                                                                        ws['D'+str(numRow)].value= student[k]['Agency']
-                                                                        numRow=numRow+1
-                                        print(numRow)
-                except:
-                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                                                                                email=student[k]['Email']
+                                                                                ws['A'+str(numRow)].value= firstName
+                                                                                ws['B'+str(numRow)].value= lastName
+                                                                                ws['C'+str(numRow)].value= email
+                                                                                ws['D'+str(numRow)].value= student[k]['Agency']
+                                                                                ws['E'+str(numRow)].value= numRow
+                                                                                numRow=numRow+1                                                                                
+                                                                        else:
+                                                                                continue
+
+                                                                actualAgencyName= 'Ciudad de'
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:
+                                                                                firstName=student[k]['First Name']
+                                                                                lastName=student[k]['Last Name']
+                                                                                email=student[k]['Email']
+                                                                                ws['A'+str(numRow)].value= firstName
+                                                                                ws['B'+str(numRow)].value= lastName
+                                                                                ws['C'+str(numRow)].value= email
+                                                                                ws['D'+str(numRow)].value= student[k]['Agency']
+                                                                                ws['E'+str(numRow)].value= numRow
+                                                                                numRow=numRow+1                                                                                
+                                                                        else:
+                                                                                continue
+                                                       
+                                                        else:
+                                                                actualAgencyName=agencyName
+                                                                #print(actualAgencyName)                                                          
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:
+                                                                                firstName=student[k]['First Name']
+                                                                                lastName=student[k]['Last Name']
+                                                                                email=student[k]['Email']
+                                                                                ws['A'+str(numRow)].value= firstName
+                                                                                ws['B'+str(numRow)].value= lastName
+                                                                                ws['C'+str(numRow)].value= email
+                                                                                ws['D'+str(numRow)].value= student[k]['Agency']
+                                                                                ws['E'+str(numRow)].value= numRow
+                                                                                numRow=numRow+1                                                                                
+                                                                        else:
+                                                                                continue
+
+                                keyCounter=keyCounter+1
                 wbNew.save('Completes sorted by Agency.xlsx')
                 print('Completes sorted by Agency.xlsx')
         else:
+                agencyName=""
+                initialAgencyName=agencyName
                 for k,v in student.items():
                         for k1,v1 in v.items():
                                 if v1=="Completó":
@@ -226,10 +271,10 @@ def agencyCompletionResults(agencyName):
                                                 firstName=student[k]['First Name']
                                                 lastName=student[k]['Last Name']
                                                 email=student[k]['Email']
-                                                studentInfo=firstName+" "+lastName+" "+completedUser
-                                                print(firstName+" "+lastName+" "+completedUser)
+##                                                studentInfo=firstName+" "+lastName+" "+completedUser
+##                                                print(firstName+" "+lastName+" "+completedUser)
                                                 ws['A'+str(numRow)].value= firstName
-                                                print(firstName+" entered")
+##                                                print(firstName+" entered")
                                                 ws['B'+str(numRow)].value= lastName
                                                 ws['C'+str(numRow)].value= email
                                                 ws['D'+str(numRow)].value= student[k]['Agency']
