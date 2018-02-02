@@ -16,6 +16,7 @@
 import os, openpyxl, pprint, logging, ftplib, sys, traceback
 from openpyxl import Workbook
 logger=logging.getLogger('ftpuploader')
+agencyName=""
 ##Master sheet
 #wbTest= openpyxl.load_workbook('test.xlsx')
 #sheet= wbTest.get_sheet_by_name('Complete')
@@ -29,13 +30,47 @@ sheet3= wbNLI.get_sheet_by_name('Students-Never-Logged-into-Blue')
 ##Master Sheet with all of the states
 wbStates=openpyxl.load_workbook('test5.xlsx')
 sheet= wbStates.get_sheet_by_name('Master')
+wbNew= Workbook()
+ws=wbNew.active
+wbAgency= Workbook()
+wsAgency=wbAgency.active
 ##Dictionaries that store everything
 student={}
 userNLI={}
 emailCheck={}
+agency={}
 completeCount=0
 loggedInCount=0
 completedUser=""
+actualAgencyName=""
+q=0
+qMax= wbStates['Querétaro'].max_row-1
+j=0
+jMax= wbStates['Jalisco'].max_row-1
+c=0
+cMax= wbStates['Ciudad de México'].max_row-1
+a=0
+aMax= wbStates['Aguascalientes'].max_row-1
+t=0
+tMax= wbStates['Tabasco'].max_row-1
+co=0
+coMax= wbStates['Colima'].max_row-1
+ba=0
+baMax= wbStates['Baja California'].max_row-1
+si=0
+siMax= wbStates['Sinaloa'].max_row-1
+mo=0
+moMax= wbStates['Morelos'].max_row-1
+nl=0
+nlMax= wbStates['Nuevo León'].max_row-1
+slp=0
+slpMax= wbStates['San Luis Potosí'].max_row-1
+g=0
+gMax= wbStates['Guanajuato'].max_row-1
+o=0
+oMax= wbStates['Oaxaca'].max_row-1
+theRestCount=0
+theRestCountTotal=407
 
 #test
 #test2
@@ -58,6 +93,7 @@ for sheet in wbStates:
             allLastNames= sheet['B'+str(rowNum)].value
             if(sheet['C'+str(rowNum)].value!=None):
                     allAgencies= sheet['C'+str(rowNum)].value
+                    agency.setdefault(allAgencies,{})
             allEmails= sheet['D'+str(rowNum)].value
             allUser= sheet['E'+str(rowNum)].value           
             #Sets up the searchable categories
@@ -81,6 +117,9 @@ for sheet in wbStates:
             else:
                 sheet.cell(row=rowNum, column=7).value= 'No ha iniciado sesión'
                 student[allUser].update({"¿Completó el curso?":'No ha iniciado sesión'})
+
+for students in student:
+        agency.update({student[students]['Agency']:students})
 
 #Searches for 
 def saveUserSearch(saveName, dictTerm, dictTerm2):
@@ -119,23 +158,45 @@ def saveUnsentEvals(saveName, dictTerm):
                 print("")
         end()
 
-def agencyWrite(actualAgencyName):
- if actualAgencyName in student[k]['Agency']:
-        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:
+def agencyWrite(actualAgencyName, numRow, k, a):
+        if a==1:
                 firstName=student[k]['First Name']
                 lastName=student[k]['Last Name']
                 email=student[k]['Email']
-                ws['A'+str(numRow)].value= firstName
-                ws['B'+str(numRow)].value= lastName
-                ws['C'+str(numRow)].value= email
-                ws['D'+str(numRow)].value= student[k]['Agency']
-                ws['E'+str(numRow)].value= numRow
-                numRow=numRow+1                                                                                
+                wsAgency.title=actualAgencyName
+                if actualAgencyName in student[k]['Agency']:
+                        ws['A'+str(numRow)].value= firstName
+                        ws['B'+str(numRow)].value= lastName
+                        ws['C'+str(numRow)].value= email
+                        if wsAgency['D'+str(numRow)].value!=wsAgency.title:
+                                wsAgency['A'+str(numRow)].value= None
+                                wsAgency['B'+str(numRow)].value= None
+                                wsAgency['C'+str(numRow)].value= None
+                                wsAgency['D'+str(numRow)].value= None
+                                wsAgency['E'+str(numRow)].value= None
+                        ws['E'+str(numRow)].value= numRow
+                        #print(firstName+''+student[k]['Agency'])
         else:
-                continue
-       
+                firstName=student[k]['First Name']
+                lastName=student[k]['Last Name']
+                email=student[k]['Email']
+                wsAgency.title=actualAgencyName
+                if wsAgency.title==actualAgencyName:
+                        wsAgency['A'+str(numRow)].value= firstName
+                        wsAgency['B'+str(numRow)].value= lastName
+                        wsAgency['C'+str(numRow)].value= email
+                        wsAgency['D'+str(numRow)].value= actualAgencyName
+                        if str(wsAgency['D'+str(numRow)].value)!=str(wsAgency.title):
+                                wsAgency['A'+str(numRow)].value= None
+                                wsAgency['B'+str(numRow)].value= None
+                                wsAgency['C'+str(numRow)].value= None
+                                wsAgency['D'+str(numRow)].value= None
+                                wsAgency['E'+str(numRow)].value= None
+                        else:
+                                wsAgency['E'+str(numRow)].value= numRow
+
 ##These next three func
-def agencyCompletionResults(initialAgencyName):
+def agencyCompletionResults(agencyName):
         ##DESC: 
         ##TODO: Completion,
         ##           Add in emails
@@ -145,14 +206,68 @@ def agencyCompletionResults(initialAgencyName):
         ##           Apply to agencyLoginResults and agencyEvalResults
         ##TODO:login, eval filters
         #print(agencyName)
+
         firstName=""
         lastName=""
-        wbNew= Workbook()
-        ws= wbNew.active
         numRow=1    
-        if initialAgencyName=="All":
-                agencyName=""
-                initialAgencyName=agencyName
+        if agencyName=="All":
+                #agencyName=""
+                #initialAgencyName=agencyName
+                for sheet in wbStates:
+                        keyCounter=0
+                        agencyName=sheet.title                        
+                        for k,v in student.items():
+                                if keyCounter<461:
+                                        for k1,v1 in v.items():
+                                                if v1=="Completó":
+                                                        if k != None:
+                                                                completedUser=k
+                                                        #actualAgencyName=""
+                                                        if agencyName=="Querétaro":
+                                                                actualAgencyName=  'Jalpan'
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,1)
+                                                                                numRow=numRow+1 
+                                                                        else:
+                                                                                continue
+                                                                actualAgencyName= agencyName
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,1)
+                                                                                #agencyCompletionResults(agencyName)
+                                                                                numRow=numRow+1
+                                                                        else:
+                                                                                continue
+                                                      
+                                                        elif agencyName=="Ciudad de México":
+                                                                actualAgencyName= 'Distrito'
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,1)
+                                                                                #numRow=numRow+1
+                                                                        else:
+                                                                                continue
+
+                                                                actualAgencyName= 'Ciudad de'
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,1)
+                                                                                #agencyCompletionResults(agencyName)
+                                                                                numRow=numRow+1
+                                                                        else:
+                                                                                continue
+                                                        else:
+                                                                actualAgencyName=agencyName                                                         
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,1)
+                                                                                #agencyCompletionResults(actualAgencyName)
+                                                                                numRow=numRow+1
+                                                                        else:
+                                                                                continue
+
+                                keyCounter=keyCounter+1
                 for sheet in wbStates:
                         keyCounter=0
                         agencyName=sheet.title                        
@@ -162,126 +277,268 @@ def agencyCompletionResults(initialAgencyName):
                                                 if v1=="Completó":
                                                         if k != None:
                                                                 completedUser=k
-                                                                print(k)
-                                                        actualAgencyName=""
+                                                        #actualAgencyName=""
                                                         if agencyName=="Querétaro":
-                                                                actualAgencyName=  'Jalpan'
-                                                                print(actualAgencyName)
-                                                                if actualAgencyName in student[k]['Agency']:
-                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:
-                                                                                firstName=student[k]['First Name']
-                                                                                lastName=student[k]['Last Name']
-                                                                                email=student[k]['Email']
-                                                                                ws['A'+str(numRow)].value= firstName
-                                                                                ws['B'+str(numRow)].value= lastName
-                                                                                ws['C'+str(numRow)].value= email
-                                                                                ws['D'+str(numRow)].value= student[k]['Agency']
-                                                                                ws['E'+str(numRow)].value= numRow
-                                                                                numRow=numRow+1                                                                                
-                                                                        else:
-                                                                                continue
-
                                                                 actualAgencyName= agencyName
-                                                                #print(actualAgencyName)
                                                                 if actualAgencyName in student[k]['Agency']:
-                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:
-                                                                                firstName=student[k]['First Name']
-                                                                                lastName=student[k]['Last Name']
-                                                                                email=student[k]['Email']
-                                                                                ws['A'+str(numRow)].value= firstName
-                                                                                ws['B'+str(numRow)].value= lastName
-                                                                                ws['C'+str(numRow)].value= email
-                                                                                ws['D'+str(numRow)].value= student[k]['Agency']
-                                                                                ws['E'+str(numRow)].value= numRow
-                                                                                numRow=numRow+1                                                                                
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                #agencyWrite(actualAgencyName, numRow, k,1)
+                                                                                agencyCompletionResults(agencyName)
+                                                                               
+                                                                                #numRow=numRow+1
                                                                         else:
                                                                                 continue
                                                       
                                                         elif agencyName=="Ciudad de Mexico":
-                                                                actualAgencyName= 'Distrito'
-                                                                #print(actualAgencyName)
+                                                                actualAgencyName= 'Ciudad de México'
                                                                 if actualAgencyName in student[k]['Agency']:
-                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:
-                                                                                firstName=student[k]['First Name']
-                                                                                lastName=student[k]['Last Name']
-                                                                                email=student[k]['Email']
-                                                                                ws['A'+str(numRow)].value= firstName
-                                                                                ws['B'+str(numRow)].value= lastName
-                                                                                ws['C'+str(numRow)].value= email
-                                                                                ws['D'+str(numRow)].value= student[k]['Agency']
-                                                                                ws['E'+str(numRow)].value= numRow
-                                                                                numRow=numRow+1                                                                                
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                #agencyWrite(actualAgencyName, numRow, k,1)
+                                                                                agencyCompletionResults(agencyName)
+                                                                                #numRow=numRow+1
                                                                         else:
                                                                                 continue
-
-                                                                actualAgencyName= 'Ciudad de'
-                                                                #print(actualAgencyName)
-                                                                if actualAgencyName in student[k]['Agency']:
-                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:
-                                                                                firstName=student[k]['First Name']
-                                                                                lastName=student[k]['Last Name']
-                                                                                email=student[k]['Email']
-                                                                                ws['A'+str(numRow)].value= firstName
-                                                                                ws['B'+str(numRow)].value= lastName
-                                                                                ws['C'+str(numRow)].value= email
-                                                                                ws['D'+str(numRow)].value= student[k]['Agency']
-                                                                                ws['E'+str(numRow)].value= numRow
-                                                                                numRow=numRow+1                                                                                
-                                                                        else:
-                                                                                continue
-                                                       
                                                         else:
-                                                                actualAgencyName=agencyName
-                                                                #print(actualAgencyName)                                                          
+                                                                actualAgencyName=str(agencyName)                                                         
                                                                 if actualAgencyName in student[k]['Agency']:
-                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:
-                                                                                firstName=student[k]['First Name']
-                                                                                lastName=student[k]['Last Name']
-                                                                                email=student[k]['Email']
-                                                                                ws['A'+str(numRow)].value= firstName
-                                                                                ws['B'+str(numRow)].value= lastName
-                                                                                ws['C'+str(numRow)].value= email
-                                                                                ws['D'+str(numRow)].value= student[k]['Agency']
-                                                                                ws['E'+str(numRow)].value= numRow
-                                                                                numRow=numRow+1                                                                                
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                #agencyWrite(actualAgencyName, numRow, k,1)
+                                                                                #print(agencyName)
+                                                                                agencyCompletionResults(str(agencyName))
+
+                                                                                #numRow=numRow+1
                                                                         else:
                                                                                 continue
 
-                                keyCounter=keyCounter+1
+                                #keyCounter=keyCounter+1                                
                 wbNew.save('Completes sorted by Agency.xlsx')
                 print('Completes sorted by Agency.xlsx')
         else:
-                agencyName=""
-                initialAgencyName=agencyName
+                #initialAgencyName=agencyName
+                keyCounter=0
+                numRow=1
+                #theRestCount=theRestCount
                 for k,v in student.items():
-                        for k1,v1 in v.items():
-                                if v1=="Completó":
-                                        completedUser=k
-                                        actualAgencyName=""
-                                        if agencyName=="Querétaro" or "Queretaro":
-                                                actualAgencyName= "Querétaro" or "Jalpan"
-                                                print(actualAgencyName)
-                                        elif agencyName=="Ciudad de Mexico" or "CDMX":
-                                                actualAgencyName= "Ciudad de México" or "Feder"
-                                                print(actualAgencyName)
-                                        else:
-                                                actualAgencyName=agencyName
-                                                print(actualAgencyName)
-                                        if actualAgencyName in student[k]['Agency']:
-                                                firstName=student[k]['First Name']
-                                                lastName=student[k]['Last Name']
-                                                email=student[k]['Email']
-##                                                studentInfo=firstName+" "+lastName+" "+completedUser
-##                                                print(firstName+" "+lastName+" "+completedUser)
-                                                ws['A'+str(numRow)].value= firstName
-##                                                print(firstName+" entered")
-                                                ws['B'+str(numRow)].value= lastName
-                                                ws['C'+str(numRow)].value= email
-                                                ws['D'+str(numRow)].value= student[k]['Agency']
-                                                numRow=numRow+1
-                wbNew.save(agencyName+' Completes.xlsx')
+                        #if keyCounter<463:                        
+                                for k1,v1 in v.items():
+                                        if v1=="Completó":
+                                                completedUser=k
+                                                if agencyName=="Querétaro":
+                                                        #print(wbStates['Querétaro'].max_row)
+                                                        global q
+                                                        if q<qMax:                                                                
+                                                                actualAgencyName= "Querétaro"
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                q=q+1
+                                                                        else:
+                                                                                continue
+                                                                actualAgencyName=  'Jalpan'
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                q=q+1
+                                                                                print(str(q)+" q")
+                                                                        else:
+                                                                                continue  
+                                                elif agencyName=="Ciudad de México":
+                                                        #print(wbStates[agencyName].max_row)
+                                                        global c
+                                                        if c<cMax:                                                            
+                                                                actualAgencyName= 'Distrito'
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                c=c+1
+                                                                                #numRow=numRow+1
+                                                                        else:
+                                                                                continue
+
+                                                                actualAgencyName= 'Ciudad de México'
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                c=c+1
+                                                                                print(str(c)+" c")
+                                                                        else:
+                                                                                continue
+                                                elif agencyName=="Jalisco":
+                                                        #print(wbStates[agencyName].max_row)
+                                                        global j
+                                                        if j<jMax:                                                            
+                                                                actualAgencyName=str(agencyName)
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                j=j+1
+                                                                                print(str(j)+" j")
+                                                                        else:
+                                                                                continue
+                                                elif agencyName=="Aguascalientes":
+                                                        #print(wbStates[agencyName].max_row)
+                                                        global a
+                                                        if a<aMax:                                                            
+                                                                actualAgencyName=str(agencyName)
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                a=a+1
+                                                                                print(str(a)+" a")
+                                                                        else:
+                                                                                continue
+                                                elif agencyName=="Tabasco":
+                                                        #print(wbStates[agencyName].max_row)
+                                                        global t
+                                                        if t<tMax:                                                            
+                                                                actualAgencyName=str(agencyName)
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                t=t+1
+                                                                                print(str(t)+" t")
+                                                                        else:
+                                                                                continue
+                                                elif agencyName=="Colima": #30
+                                                        #print(wbStates[agencyName].max_row)
+                                                        global co
+                                                        if co<coMax:                                                            
+                                                                actualAgencyName=str(agencyName)
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                co=co+1
+                                                                                print(str(co)+" co")
+                                                                        else:
+                                                                                continue
+                                                elif agencyName=="Baja California": #34
+                                                        #print(wbStates[agencyName].max_row)
+                                                        global ba
+                                                        if ba<baMax:                                                            
+                                                                actualAgencyName=str(agencyName)
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                ba=ba+1
+                                                                                print(str(ba)+" ba")
+                                                                        else:
+                                                                                continue 
+                                                elif agencyName=="Sinaloa": #18
+                                                        #print(wbStates[agencyName].max_row)
+                                                        global si
+                                                        if si<siMax:                                                            
+                                                                actualAgencyName=str(agencyName)
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                si=si+1
+                                                                                print(str(si)+" si")
+                                                                        else:
+                                                                                continue
+                                                elif agencyName=="Morelos": #39
+                                                        #print(wbStates[agencyName].max_row)
+                                                        global mo
+                                                        if mo<moMax:                                                            
+                                                                actualAgencyName=str(agencyName)
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                mo=mo+1
+                                                                                print(str(mo)+" mo")
+                                                                        else:
+                                                                                continue
+                                                elif agencyName=="Nuevo León": #38
+                                                        #print(wbStates[agencyName].max_row)
+                                                        global nl
+                                                        if nl<nlMax:                                                            
+                                                                actualAgencyName=str(agencyName)
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                nl=nl+1
+                                                                                print(str(nl)+" nl")
+                                                                        else:
+                                                                                continue
+                                                elif agencyName=="San Luis Potosí": #47
+                                                        #print(wbStates[agencyName].max_row)
+                                                        global slp
+                                                        if slp<slpMax:                                                            
+                                                                actualAgencyName=str(agencyName)
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                slp=slp+1
+                                                                                print(str(slp)+" slp")
+                                                                        else:
+                                                                                continue
+                                                elif agencyName=="Guanajuato": #45
+                                                        #print(wbStates[agencyName].max_row)
+                                                        global g
+                                                        if g<gMax:                                                            
+                                                                actualAgencyName=str(agencyName)
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                g=g+1
+                                                                                print(str(g)+" g")
+                                                                        else:
+                                                                                continue
+                                                elif agencyName=="Oaxaca": #44
+                                                        #print(wbStates[agencyName].max_row)
+                                                        global o
+                                                        if o<oMax:                                                            
+                                                                actualAgencyName=str(agencyName)
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                o=o+1
+                                                                                print(str(o)+" o")
+                                                                        else:
+                                                                                continue                                                                         
+                                                else:
+                                                        #print(theRestCountTotal)
+                                                        global theRestCount
+                                                        if theRestCount<10:
+                                                                actualAgencyName=str(agencyName)
+                                                                #print(actualAgencyName)
+                                                                if actualAgencyName in student[k]['Agency']:
+                                                                        if student[k]['First Name'] and student[k]['Last Name'] and student[k]['Email'] != None:                                                                
+                                                                                agencyWrite(actualAgencyName, numRow, k,0)
+                                                                                numRow=numRow+1
+                                                                                theRestCount=theRestCount+1
+                                                                                print(str(theRestCount)+ " theRestCount "+ actualAgencyName)                                                                       
+                                                                        else:
+                                                                                continue
+                wbAgency.save(agencyName+' Completes.xlsx')
                 print("Saved "+agencyName+' Completes.xlsx')
-        
+                
 def agencyLoginResults(agencyName):
         print(a)
 def agencyEvalResults(agencyName):
